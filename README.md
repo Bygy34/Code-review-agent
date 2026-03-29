@@ -4,7 +4,7 @@
 
 ## Что делает MVP
 
-- Запускается на событиях PR (`opened`, `synchronize`, `reopened`).
+- Запускается на событиях PR (`opened`, `synchronize`, `reopened`) при target branch = `develop`.
 - Собирает список изменённых файлов через GitHub API.
 - Формирует короткий review summary (пока rule-based эвристика, чтобы MVP был рабочим без внешних зависимостей).
 - Публикует комментарий в PR через `GITHUB_TOKEN`.
@@ -13,9 +13,10 @@
 
 ## Структура
 
-- `.github/workflows/ai-code-review.yml` — GitHub Actions workflow.
+- `.github/workflows/ai-code-review.yml` — GitHub Actions workflow (только PR в `develop`).
 - `scripts/review_agent.py` — Python-агент (stdlib-only).
 - `scripts/csharp/ReviewAgent.csproj` + `scripts/csharp/Program.cs` — C#-агент.
+- `examples/csharp-dotnet-test-app/` — тестовый C#/.NET код для PR-проверок.
 - `examples/test-pr-fixtures/` — тестовые PR-фикстуры для dry-run.
 - `docs/testing-pr-scenarios.md` — как проверять агент локально и в реальном PR.
 - `config/review-rules.yaml` — пример правил/политик ревью.
@@ -28,7 +29,7 @@
 3. (Опционально) для переключения runtime создайте Repository Variable:
    - `REVIEW_AGENT_RUNTIME=python` (default), или
    - `REVIEW_AGENT_RUNTIME=csharp`.
-4. Откройте/обновите PR — агент оставит summary-комментарий.
+4. Откройте/обновите PR в `develop` — агент оставит summary-комментарий.
 
 ## Локальный dry-run (без GitHub PR)
 
