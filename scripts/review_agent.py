@@ -2,7 +2,9 @@
 """Minimal PR review agent for GitHub Actions.
 
 This MVP intentionally uses only stdlib to keep setup simple.
+
 Supports a local dry-run mode with fixtures for predictable testing.
+
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ class Finding:
     recommendation: str
 
 
+
 def _env(name: str, default: str | None = None) -> str | None:
     value = os.getenv(name)
     if value is None or value == "":
@@ -39,6 +42,7 @@ def _env(name: str, default: str | None = None) -> str | None:
 def _require_env(name: str) -> str:
     value = _env(name)
     if value is None:
+
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
@@ -60,7 +64,9 @@ def _github_request(url: str, token: str, method: str = "GET", data: dict | None
         return json.loads(response.read().decode("utf-8"))
 
 
+
 def _load_json(path: str) -> dict | list:
+
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -96,7 +102,6 @@ def _analyze_patch(filename: str, patch: str | None) -> list[Finding]:
             findings.append(Finding(severity=severity, file=filename, issue=issue, recommendation=recommendation))
 
     return findings
-
 
 def _format_comment(findings: list[Finding], files_changed: int, mode: str) -> str:
     header = [
