@@ -1,0 +1,10 @@
+[
+  {
+    "filename": "examples/csharp-dotnet-test-app/Program.cs",
+    "patch": "@@ -1,2 +1,8 @@\n+var password = \"demo-password\";\n+var api_key = \"demo-api-key\";\n+// TODO: remove test secrets before production\n"
+  },
+  {
+    "filename": "src/CriticalRunner.cs",
+    "patch": "@@ -20,0 +21,1 @@\n+exec(dynamicCode);\n"
+  }
+]
