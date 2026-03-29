@@ -11,20 +11,39 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
+    env:
+      REVIEW_AGENT_RUNTIME: ${{ vars.REVIEW_AGENT_RUNTIME || 'python' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: env.REVIEW_AGENT_RUNTIME == 'python'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Run review agent
+      - name: Set up .NET
+        if: env.REVIEW_AGENT_RUNTIME == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run Python review agent
+        if: env.REVIEW_AGENT_RUNTIME == 'python'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
         run: |
           python scripts/review_agent.py
+
+      - name: Run C# review agent
+        if: env.REVIEW_AGENT_RUNTIME == 'csharp'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          dotnet run --project scripts/csharp/ReviewAgent.csproj --configuration Release
