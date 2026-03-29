@@ -1,0 +1,33 @@
+version: 0.1
+profile: advisory
+
+severities:
+  blocker: "Security vulnerabilities or data-loss risks"
+  high: "Likely runtime failures or incorrect business logic"
+  medium: "Maintainability or performance concerns"
+  low: "Style and minor improvements"
+
+critical_paths:
+  - auth/
+  - payments/
+  - infrastructure/
+
+checks:
+  - id: no_secrets
+    description: "Never commit credentials, tokens, private keys"
+    severity: blocker
+
+  - id: unsafe_dynamic_eval
+    description: "Avoid eval/exec on untrusted input"
+    severity: blocker
+
+  - id: missing_error_handling
+    description: "Network and IO operations should handle failures"
+    severity: high
+
+  - id: long_function
+    description: "Functions above ~80 lines should be split"
+    severity: medium
+
+suppression:
+  marker: "ai-review: ignore"
