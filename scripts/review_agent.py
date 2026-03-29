@@ -2,6 +2,9 @@
 """Minimal PR review agent for GitHub Actions.
 
 This MVP intentionally uses only stdlib to keep setup simple.
+
+Supports a local dry-run mode with fixtures for predictable testing.
+
 """
 
 from __future__ import annotations
@@ -28,9 +31,18 @@ class Finding:
     recommendation: str
 
 
-def _require_env(name: str) -> str:
+
+def _env(name: str, default: str | None = None) -> str | None:
     value = os.getenv(name)
-    if not value:
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _require_env(name: str) -> str:
+    value = _env(name)
+    if value is None:
+
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
@@ -52,7 +64,9 @@ def _github_request(url: str, token: str, method: str = "GET", data: dict | None
         return json.loads(response.read().decode("utf-8"))
 
 
-def _load_event(path: str) -> dict:
+
+def _load_json(path: str) -> dict | list:
+
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -89,10 +103,9 @@ def _analyze_patch(filename: str, patch: str | None) -> list[Finding]:
 
     return findings
 
-
-def _format_comment(findings: list[Finding], files_changed: int) -> str:
+def _format_comment(findings: list[Finding], files_changed: int, mode: str) -> str:
     header = [
-        "## 🤖 AI Code Review (MVP)",
+        f"## 🤖 AI Code Review (MVP, {mode})",
         f"Reviewed files: **{files_changed}**",
         "",
     ]
@@ -107,41 +120,76 @@ def _format_comment(findings: list[Finding], files_changed: int) -> str:
         )
 
     rows = ["| severity | file | issue | recommendation |", "|---|---|---|---|"]
-    for f in findings:
-        rows.append(f"| {f.severity} | `{f.file}` | {f.issue} | {f.recommendation} |")
+    for finding in findings:
+        rows.append(f"| {finding.severity} | `{finding.file}` | {finding.issue} | {finding.recommendation} |")
 
     return "\n".join(header + rows)
 
 
-def main() -> int:
-    try:
-        token = _require_env("GITHUB_TOKEN")
-        owner_repo = _require_env("GITHUB_REPOSITORY")
-        event_path = _require_env("GITHUB_EVENT_PATH")
+def _review_files(files: Iterable[dict]) -> tuple[list[Finding], int]:
+    findings: list[Finding] = []
+    files_changed = 0
+    for changed_file in files:
+        files_changed += 1
+        filename = changed_file.get("filename", "unknown")
+        patch = changed_file.get("patch")
+        findings.extend(_analyze_patch(filename, patch))
+    return findings, files_changed
 
-        event = _load_event(event_path)
-        pr = event.get("pull_request")
-        if not pr:
-            print("No pull_request payload found. Exiting.")
-            return 0
 
-        pr_number = int(pr["number"])
+def _run_fixture_mode(fixtures_path: str) -> int:
+    payload = _load_json(fixtures_path)
+    if not isinstance(payload, list):
+        raise RuntimeError("Fixture file must contain a JSON array of changed files.")
 
-        findings: list[Finding] = []
-        files_changed = 0
-        for changed_file in _iter_pr_files(owner_repo, pr_number, token):
-            files_changed += 1
-            filename = changed_file.get("filename", "unknown")
-            patch = changed_file.get("patch")
-            findings.extend(_analyze_patch(filename, patch))
+    findings, files_changed = _review_files(payload)
+    comment = _format_comment(findings, files_changed, "fixture")
 
-        body = _format_comment(findings, files_changed)
-        comments_url = pr["comments_url"]
-        _github_request(comments_url, token, method="POST", data={"body": body})
+    output_path = _env("DRY_RUN_OUTPUT", "review-output.md")
+    with open(output_path, "w", encoding="utf-8") as fh:
+        fh.write(comment)
 
-        print(f"Posted AI review summary for PR #{pr_number} with {len(findings)} finding(s).")
+    print(f"Fixture dry-run completed. Findings: {len(findings)}. Output: {output_path}")
+    return 0
+
+
+def _run_github_mode() -> int:
+    token = _require_env("GITHUB_TOKEN")
+    owner_repo = _require_env("GITHUB_REPOSITORY")
+    event_path = _require_env("GITHUB_EVENT_PATH")
+
+    event = _load_json(event_path)
+    if not isinstance(event, dict):
+        raise RuntimeError("Invalid GitHub event payload.")
+
+    pr = event.get("pull_request")
+    if not isinstance(pr, dict):
+        print("No pull_request payload found. Exiting.")
         return 0
 
+    pr_number = int(pr["number"])
+    findings, files_changed = _review_files(_iter_pr_files(owner_repo, pr_number, token))
+    body = _format_comment(findings, files_changed, "github")
+
+    comments_url = pr["comments_url"]
+    if not isinstance(comments_url, str):
+        raise RuntimeError("Missing comments_url in event payload.")
+
+    if _env("DRY_RUN", "0") == "1":
+        print(body)
+        return 0
+
+    _github_request(comments_url, token, method="POST", data={"body": body})
+    print(f"Posted AI review summary for PR #{pr_number} with {len(findings)} finding(s).")
+    return 0
+
+
+def main() -> int:
+    try:
+        fixtures_path = _env("REVIEW_FILES_PATH")
+        if fixtures_path:
+            return _run_fixture_mode(fixtures_path)
+        return _run_github_mode()
     except urllib.error.HTTPError as exc:
         print(f"GitHub API HTTP error: {exc.code} {exc.reason}", file=sys.stderr)
         return 1
