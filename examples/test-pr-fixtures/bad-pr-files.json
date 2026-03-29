@@ -1,0 +1,10 @@
+[
+  {
+    "filename": "src/auth/login.py",
+    "patch": "@@ -1,3 +1,8 @@\n+password = \"qwerty123\"\n+api_key = \"ABC-SECRET\"\n+result = eval(user_input)\n+# TODO: remove debug backdoor\n"
+  },
+  {
+    "filename": "src/worker/job.py",
+    "patch": "@@ -10,2 +10,3 @@\n+exec(dynamic_code)\n"
+  }
+]
