@@ -19,10 +19,15 @@
 - `examples/csharp-dotnet-test-app/` — тестовый C#/.NET код для PR-проверок.
 - `examples/test-pr-fixtures/` — тестовые PR-фикстуры для dry-run.
 - `docs/testing-pr-scenarios.md` — как проверять агент локально и в реальном PR.
-
 - `config/review-rules.yaml` — пример правил/политик ревью.
 - `prompts/review_prompt.md` — шаблон prompt для будущего LLM-режима.
 
+
+## Политика веток
+
+- Все новые PR открываем **в `develop`**.
+- Текущие и будущие тестовые PR также переводим на base branch `develop`.
+- `main` пока не используется для тестовых прогонов.
 ## Быстрый запуск
 
 1. Добавьте файлы в репозиторий.

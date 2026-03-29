@@ -2,9 +2,7 @@
 """Minimal PR review agent for GitHub Actions.
 
 This MVP intentionally uses only stdlib to keep setup simple.
-
 Supports a local dry-run mode with fixtures for predictable testing.
-
 """
 
 from __future__ import annotations
@@ -30,8 +28,6 @@ class Finding:
     issue: str
     recommendation: str
 
-
-
 def _env(name: str, default: str | None = None) -> str | None:
     value = os.getenv(name)
     if value is None or value == "":
@@ -42,7 +38,6 @@ def _env(name: str, default: str | None = None) -> str | None:
 def _require_env(name: str) -> str:
     value = _env(name)
     if value is None:
-
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
 
@@ -62,8 +57,6 @@ def _github_request(url: str, token: str, method: str = "GET", data: dict | None
     req = urllib.request.Request(url=url, data=payload, method=method, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
-
-
 
 def _load_json(path: str) -> dict | list:
 
@@ -102,8 +95,7 @@ def _analyze_patch(filename: str, patch: str | None) -> list[Finding]:
             findings.append(Finding(severity=severity, file=filename, issue=issue, recommendation=recommendation))
 
     return findings
-
-def _format_comment(findings: list[Finding], files_changed: int, mode: str) -> str:
+st[Finding], files_changed: int, mode: str) -> str:
     header = [
         f"## 🤖 AI Code Review (MVP, {mode})",
         f"Reviewed files: **{files_changed}**",
