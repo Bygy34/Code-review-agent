@@ -9,3 +9,4 @@ var parsed = JsonSerializer.Deserialize<Dictionary<string, string>>(payload);
 var diagnostic = PipelineSignal.BuildDiagnosticMessage();
 Console.WriteLine($"Status: {parsed?["status"]}");
 Console.WriteLine(diagnostic);
+

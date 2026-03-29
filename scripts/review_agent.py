@@ -28,7 +28,6 @@ class Finding:
     issue: str
     recommendation: str
 
-
 def _env(name: str, default: str | None = None) -> str | None:
     value = os.getenv(name)
     if value is None or value == "":
@@ -59,8 +58,8 @@ def _github_request(url: str, token: str, method: str = "GET", data: dict | None
     with urllib.request.urlopen(req, timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
 
-
 def _load_json(path: str) -> dict | list:
+
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -96,9 +95,7 @@ def _analyze_patch(filename: str, patch: str | None) -> list[Finding]:
             findings.append(Finding(severity=severity, file=filename, issue=issue, recommendation=recommendation))
 
     return findings
-
-
-def _format_comment(findings: list[Finding], files_changed: int, mode: str) -> str:
+st[Finding], files_changed: int, mode: str) -> str:
     header = [
         f"## 🤖 AI Code Review (MVP, {mode})",
         f"Reviewed files: **{files_changed}**",

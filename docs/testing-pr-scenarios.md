@@ -42,6 +42,7 @@ python scripts/review_agent.py
 
 1. Создай ветку `test/ai-review-signal`.
 2. Добавь/измени тестовый код (например `examples/csharp-dotnet-test-app/PipelineSignal.cs`) с триггерами (`TODO`, `password`, `api_key`).
+
 3. Открой PR **в `develop`**.
 4. Проверь, что workflow `AI Code Review` запустился и оставил комментарий.
 
