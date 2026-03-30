@@ -1,0 +1,19 @@
+name: Enforce develop as PR base
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+jobs:
+  enforce-base-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR base branch
+        run: |
+          echo "PR base branch: ${{ github.base_ref }}"
+          if [ "${{ github.base_ref }}" != "develop" ]; then
+            echo "ERROR: PR base branch must be 'develop'. Current base: '${{ github.base_ref }}'."
+            echo "Please retarget this PR to 'develop'."
+            exit 1
+          fi
+          echo "OK: PR targets develop."

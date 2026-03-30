@@ -1,0 +1,10 @@
+[
+  {
+    "filename": "src/utils/math.py",
+    "patch": "@@ -1,2 +1,5 @@\n+def add(a, b):\n+    return a + b\n"
+  },
+  {
+    "filename": "src/app.py",
+    "patch": "@@ -8,1 +8,1 @@\n-print('hello')\n+print('hello world')\n"
+  }
+]
